@@ -1977,9 +1977,13 @@ int parse_arguments(int *argc_p, const char ***argv_p)
 	}
 #endif
 
-	if (block_size > MAX_BLOCK_SIZE) {
+	/* We don't really know the actual protocol_version at this point,
+	 * but checking the pre-negotiated value allows the user to use a
+	 * --protocol=29 override to use very large block sizes for hash table
+	 * issues like https://bugzilla.samba.org/show_bug.cgi?id=10518. */
+	if (block_size > (protocol_version < 30 ? OLD_MAX_BLOCK_SIZE : MAX_BLOCK_SIZE)) {
 		snprintf(err_buf, sizeof err_buf,
-			 "--block-size=%lu is too large (max: %u)\n", block_size, MAX_BLOCK_SIZE);
+			 "--block-size=%lu is too large (max: %u)\n", block_size, (protocol_version < 30 ? OLD_MAX_BLOCK_SIZE : MAX_BLOCK_SIZE));
 		return 0;
 	}
 
